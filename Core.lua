@@ -6,15 +6,6 @@ local addonName, ns = ...
 local WS = {}
 ns.addon = WS
 
--- Shallow-enough copy for the template table (string values only).
-function ns.CopyTable(src)
-    local out = {}
-    for k, v in pairs(src) do
-        out[k] = v
-    end
-    return out
-end
-
 function WS:Print(...)
     print("|cff33ff99" .. addonName .. "|r:", ...)
 end
@@ -27,24 +18,16 @@ end
 
 -- Called once SavedVariables are available (ADDON_LOADED).
 -- Layout of WeaponStashCharDB:
---   sets      = { [setName] = { mh = "Item Name", oh = "Item Name" or nil } }
---   templates = { [macroName] = "macro body with {placeholders}" }
---   debug     = boolean
+--   sets  = { [setName] = { mh, mhID, mh2h, oh, ohID } }   (see Stash.lua)
+--   links = { ["c:Macro Name" | "a:Macro Name"] = setName } (see Macros.lua)
+--   debug = boolean
 function WS:OnInitialize()
     WeaponStashCharDB = WeaponStashCharDB or {}
     local db = WeaponStashCharDB
     db.sets = db.sets or {}
-    if db.templates == nil then
-        db.templates = ns.CopyTable(ns.DEFAULT_TEMPLATES)
-    end
+    db.links = db.links or {}
+    db.templates = nil -- pre-0.2 template system, superseded by links
     self.db = db
-end
-
-function WS:OnEnable()
-    local _, class = UnitClass("player")
-    if class ~= "WARRIOR" then
-        self:Debug("Not a warrior; default stance templates won't be useful here.")
-    end
 end
 
 -- ---------------------------------------------------------------------------
@@ -62,7 +45,6 @@ function WS:UnregisterEvent(event)
 end
 
 frame:RegisterEvent("ADDON_LOADED")
-frame:RegisterEvent("PLAYER_LOGIN")
 
 frame:SetScript("OnEvent", function(_, event, ...)
     if event == "ADDON_LOADED" then
@@ -70,9 +52,6 @@ frame:SetScript("OnEvent", function(_, event, ...)
             WS:OnInitialize()
             frame:UnregisterEvent("ADDON_LOADED")
         end
-        return
-    elseif event == "PLAYER_LOGIN" then
-        WS:OnEnable()
         return
     end
 
@@ -93,15 +72,15 @@ end
 
 local function printHelp()
     WS:Print("commands:")
-    print("  /ws save <set>        - snapshot equipped MH/OH into <set>, then update macros")
-    print("  /ws sets              - list saved sets")
-    print("  /ws delete <set>      - delete a set")
-    print("  /ws update            - rewrite all managed macros from their templates")
-    print("  /ws templates         - list managed macro templates")
-    print("  /ws adopt <macro>     - use an existing macro's text (with placeholders) as a template")
-    print("  /ws forget <macro>    - stop managing a macro (the macro itself is kept)")
-    print("  /ws reset             - restore the default stance templates")
-    print("  /ws debug             - toggle debug output")
+    print("  /ws                    - open the weapon set window")
+    print("  /ws save <set>         - snapshot equipped MH/OH into <set>, then update macros")
+    print("  /ws sets               - list saved sets")
+    print("  /ws delete <set>       - delete a set")
+    print("  /ws link <set> <macro> - keep a macro's /equipslot 16/17 lines in sync with <set>")
+    print("  /ws unlink <macro>     - stop updating a macro")
+    print("  /ws links              - list linked macros")
+    print("  /ws update             - rewrite all linked macros now")
+    print("  /ws debug              - toggle debug output")
 end
 
 SLASH_WEAPONSTASH1 = "/ws"
@@ -112,23 +91,23 @@ SlashCmdList["WEAPONSTASH"] = function(msg)
     cmd = (cmd or ""):lower()
     rest = trim(rest)
 
-    if cmd == "save" then
+    if cmd == "" or cmd == "show" then
+        WS:ToggleUI()
+    elseif cmd == "save" then
         WS:Snapshot(rest:lower())
     elseif cmd == "sets" or cmd == "list" then
         WS:ListSets()
     elseif cmd == "delete" or cmd == "del" then
         WS:DeleteSet(rest:lower())
+    elseif cmd == "link" then
+        local setName, macroName = rest:match("^(%S+)%s+(.+)$")
+        WS:LinkByName(setName and setName:lower(), macroName)
+    elseif cmd == "unlink" then
+        WS:UnlinkByName(rest)
+    elseif cmd == "links" then
+        WS:ListLinks()
     elseif cmd == "update" then
         WS:RequestMacroUpdate()
-    elseif cmd == "templates" then
-        WS:ListTemplates()
-    elseif cmd == "adopt" then
-        WS:AdoptMacro(rest)
-    elseif cmd == "forget" then
-        WS:ForgetTemplate(rest)
-    elseif cmd == "reset" then
-        WS.db.templates = ns.CopyTable(ns.DEFAULT_TEMPLATES)
-        WS:Print("Default templates restored.")
     elseif cmd == "debug" then
         WS.db.debug = not WS.db.debug
         WS:Print("debug: " .. tostring(WS.db.debug))

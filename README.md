@@ -1,83 +1,93 @@
 # WeaponStash
 
 A small, dependency-free **World of Warcraft Classic Era** addon for warriors.
-It snapshots your currently equipped main hand / off hand into named sets and keeps
-your stance swap / weapon swap macros up to date with those item names, so you
-never have to retype `/equipslot` lines after an upgrade.
+It stores your main hand / off hand weapons per stance and keeps the
+`/equipslot` lines in your own stance swap / weapon swap macros up to date,
+so you never have to retype item names after an upgrade.
 
-## Usage
+## Window
 
-1. Equip the weapons you use in a stance, then save them as a set:
+`/ws` opens the window:
 
-   ```
-   /ws save defensive     -- e.g. 1H + shield
-   /ws save battle        -- e.g. 2H
-   /ws save berserker     -- e.g. dual wield
-   ```
+- **Dropdown**: pick a stance (Battle / Defensive / Berserker) or any custom set.
+  It opens on the stance you're currently in.
+- **Main Hand / Off Hand slots**: drag a weapon from your bags or character pane onto
+  a slot to assign it (the item stays where it was; only its name is recorded).
+  Right-click a slot to clear it. A two-hander in the main hand clears the off hand.
+- **Use Equipped**: snapshot what you're wielding right now into the selected set.
+- **Equip Set**: equip the selected set (out of combat; use your macros in combat).
+- **Macros to keep in sync**: every General and Character macro you have. Check the
+  ones that should follow the selected set. Hover a macro to see its text and what
+  it will look like with this set's weapons.
 
-2. Every save rewrites the managed macros. By default these are three character
-   macros, created when their set exists:
+## What gets changed in a macro
 
-   | Macro          | Body                                                            |
-   |----------------|-----------------------------------------------------------------|
-   | `WS Battle`    | `/cast [nostance:1] Battle Stance` + equip set `battle`         |
-   | `WS Defensive` | `/cast [nostance:2] Defensive Stance` + equip set `defensive`   |
-   | `WS Berserker` | `/cast [nostance:3] Berserker Stance` + equip set `berserker`   |
-
-3. Drag them onto your bars. When you get a new weapon, equip it and `/ws save <set>` again.
-
-## Custom macros
-
-Write a macro in the normal macro UI using placeholders, then hand it to the addon:
+Only lines of the form `/equipslot [conditions] 16 <item>` and
+`/equipslot [conditions] 17 <item>` are touched, and only the item name on them.
+Everything else (`#showtooltip`, `/cast`, the conditions themselves) stays as written.
 
 ```
-#showtooltip
+#showtooltip Shield Bash
+/cast [nostance:2] Defensive Stance
+/equipslot 16 Old Sword         -> /equipslot 16 Quel'Serrar
+/equipslot 17 Old Shield        -> /equipslot 17 Draconian Deflector
 /cast Shield Bash
-{equip:defensive}
 ```
 
-```
-/ws adopt My Bash
-```
+Two-handers need special handling:
 
-The text is stored as a template and the macro is rewritten from it whenever a set changes.
+- If the set is a **two-hander** and the macro has a `16` line, its `17` lines are
+  removed, because equipping an off hand would knock the two-hander back off.
+- If the set has an **off hand** but the macro has no `17` line (e.g. it was removed
+  for a two-hander earlier), one is added after each `16` line, with the same conditions.
+- With a one-hander and an empty off hand, `17` lines are left alone.
 
-| Placeholder    | Expands to                                                         |
-|----------------|--------------------------------------------------------------------|
-| `{mh:<set>}`   | main hand item name                                                |
-| `{oh:<set>}`   | off hand item name (empty for a 2H set)                            |
-| `{equip:<set>}`| `/equipslot 16 <mh>` and, if the set has one, `/equipslot 17 <oh>` |
+Not touched: `/equip` lines, other slots, and `/equipslot` lines with several
+`;`-separated clauses (marked with `*` in the list).
 
-A macro whose sets aren't all saved yet is skipped (see `/ws templates`).
+Some macros are shown but can't be checked, because rewriting them would break them:
 
-## Commands
+- **Per-stance lines**: e.g. `/equipslot [stance:1] 16 A` plus `/equipslot [stance:2] 16 B`.
+  The macro switches weapons by stance on its own, so it can't follow a single set.
+- **Duplicate name**: another macro in the same tab has the same name. Macros have
+  no stable ID, so WeaponStash can't tell which one you meant. Rename one of them.
 
-| Command              | Description                                              |
-|----------------------|----------------------------------------------------------|
-| `/ws save <set>`     | Snapshot equipped MH/OH into `<set>` and update macros   |
-| `/ws sets`           | List saved sets                                          |
-| `/ws delete <set>`   | Delete a set                                             |
-| `/ws update`         | Rewrite all managed macros                               |
-| `/ws templates`      | List managed macros, their templates and status          |
-| `/ws adopt <macro>`  | Manage an existing macro containing placeholders         |
-| `/ws forget <macro>` | Stop managing a macro (the macro itself stays)           |
-| `/ws reset`          | Restore the three default stance templates               |
-| `/ws debug`          | Toggle debug output                                      |
+A linked macro that has been renamed or deleted shows up at the bottom of the list
+under "Linked macros that no longer exist"; uncheck it there to drop the link.
+
+## Slash commands
+
+| Command                  | Description                                            |
+|--------------------------|--------------------------------------------------------|
+| `/ws`                    | Toggle the window (`/ws help` lists commands)          |
+| `/ws save <set>`         | Snapshot equipped MH/OH into `<set>` and update macros |
+| `/ws sets`               | List saved sets                                        |
+| `/ws delete <set>`       | Delete a set                                           |
+| `/ws link <set> <macro>` | Keep a macro in sync with `<set>`                      |
+| `/ws unlink <macro>`     | Stop updating a macro                                  |
+| `/ws links`              | List linked macros                                     |
+| `/ws update`             | Rewrite all linked macros now                          |
+| `/ws debug`              | Toggle debug output                                    |
+
+The stance sets are named `battle`, `defensive` and `berserker`.
 
 ## Notes
 
-- Macros can't be edited in combat; a save during combat is applied when combat ends.
-- Macro text is limited to 255 characters; long weapon names in big templates may hit it.
-- Sets and templates are stored per character in `WeaponStashCharDB`.
+- Macros can't be edited in combat; changes made in combat apply when combat ends.
+- Macro text is limited to 255 characters; a macro that would exceed it is skipped.
+- Sets and links are stored per character in `WeaponStashCharDB`. General macros
+  are shared by all your characters, so linking one from two characters means
+  whichever character updates last wins.
 
 ## Layout
 
-| File              | Purpose                                         |
-|-------------------|-------------------------------------------------|
-| `WeaponStash.toc` | Addon manifest + load order                     |
-| `Core.lua`        | Init, saved variables, events, slash commands   |
-| `Stash.lua`       | Snapshotting equipped weapons into sets         |
-| `Macros.lua`      | Template rendering and macro create/edit        |
+| File              | Purpose                                              |
+|-------------------|------------------------------------------------------|
+| `WeaponStash.toc` | Addon manifest + load order                          |
+| `Core.lua`        | Init, saved variables, events, slash commands        |
+| `Stash.lua`       | Weapon sets: snapshot, slot assignment, equipping    |
+| `Macros.lua`      | Macro listing, linking, `/equipslot` line rewriting  |
+| `UI.lua`          | Window: set dropdown, weapon slots, macro checklist  |
 
 ## Install
 

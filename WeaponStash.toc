@@ -1,8 +1,8 @@
 ## Interface: 11509
 ## Title: WeaponStash
-## Notes: Snapshot your main hand / off hand weapons into named sets and keep stance & weapon swap macros up to date.
+## Notes: Store main hand / off hand weapons per stance and keep the /equipslot lines in your macros up to date.
 ## Author: ingoschlegelmilch
-## Version: 0.1.0
+## Version: 0.2.0
 ## SavedVariablesPerCharacter: WeaponStashCharDB
 ## IconTexture: Interface\Icons\Ability_Warrior_DefensiveStance
 ## X-Category: Combat
@@ -10,3 +10,4 @@
 Core.lua
 Stash.lua
 Macros.lua
+UI.lua
