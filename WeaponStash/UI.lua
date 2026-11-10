@@ -422,12 +422,14 @@ local function createFrame()
     f.listHint:SetJustifyH("LEFT")
     f.listHint:SetText("Checked macros get their /equipslot 16 and 17 item names replaced. Nothing else is changed.")
 
-    f.listBg = f:CreateTexture(nil, "BACKGROUND", nil, 1)
-    f.listBg:SetColorTexture(0, 0, 0, 0.3)
-
     f.scroll = CreateFrame("ScrollFrame", "WeaponStashMacroScroll", f, "UIPanelScrollFrameTemplate")
     f.scroll:SetPoint("TOPLEFT", 12, -264)
     f.scroll:SetPoint("BOTTOMRIGHT", -34, 34)
+
+    -- On the scroll frame (not the window) so it always draws above the
+    -- template's inset background.
+    f.listBg = f.scroll:CreateTexture(nil, "BACKGROUND")
+    f.listBg:SetColorTexture(0, 0, 0, 0.3)
     f.listBg:SetPoint("TOPLEFT", f.scroll, "TOPLEFT", -2, 2)
     f.listBg:SetPoint("BOTTOMRIGHT", f.scroll, "BOTTOMRIGHT", 2, -2)
 

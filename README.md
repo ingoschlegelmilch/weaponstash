@@ -105,8 +105,12 @@ scripts/install.sh --link _classic_era_   # symlink: repo edits show up after /r
 
 `## Interface: 11509, 16001, 20506` covers Classic Era 1.15.9, WoW Forever 1.60.1
 (folder `_forever_`) and TBC Anniversary 2.5.6. The numbers change with each client
-patch; check one in game with `/dump select(4, GetBuildInfo())`. WoW Forever runs on
-the modern (Midnight-era) client and hasn't been tested yet.
+patch; check one in game with `/dump select(4, GetBuildInfo())`.
+
+WoW Forever runs on the modern (Mainline, Midnight-era) client. The code has been
+checked against Blizzard's Forever 1.60.1 UI source: every API, template, event and
+`/equipslot` behaviour it relies on is present and unrestricted there, and the warrior
+stances keep their classic spell IDs. It hasn't been run in the Forever client yet.
 
 ## Layout
 

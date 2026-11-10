@@ -8,8 +8,12 @@
 local _, ns = ...
 local WS = ns.addon
 
-local MAX_BODY = 255                         -- client limit for macro text
-local ACCOUNT_BASE = MAX_ACCOUNT_MACROS or 120 -- character macros start after this index
+local MAX_BODY = 255 -- client limit for macro text
+
+-- Character macros start after this index. Forever (Mainline) only has the
+-- namespaced constant; Classic Era / Anniversary only have the global.
+local ACCOUNT_BASE = (Constants and Constants.MacroConsts and Constants.MacroConsts.MAX_ACCOUNT_MACROS)
+    or MAX_ACCOUNT_MACROS or 120
 
 -- ---------------------------------------------------------------------------
 -- Line parsing / rewriting (pure functions, no WoW API)
