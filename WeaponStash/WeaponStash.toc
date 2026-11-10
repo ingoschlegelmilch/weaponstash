@@ -1,4 +1,4 @@
-## Interface: 11509
+## Interface: 11509, 16001, 20506
 ## Title: WeaponStash
 ## Notes: Store main hand / off hand weapons per stance and keep the /equipslot lines in your macros up to date.
 ## Author: ingoschlegelmilch

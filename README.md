@@ -79,24 +79,42 @@ The stance sets are named `battle`, `defensive` and `berserker`.
   are shared by all your characters, so linking one from two characters means
   whichever character updates last wins.
 
-## Layout
-
-| File              | Purpose                                              |
-|-------------------|------------------------------------------------------|
-| `WeaponStash.toc` | Addon manifest + load order                          |
-| `Core.lua`        | Init, saved variables, events, slash commands        |
-| `Stash.lua`       | Weapon sets: snapshot, slot assignment, equipping    |
-| `Macros.lua`      | Macro listing, linking, `/equipslot` line rewriting  |
-| `UI.lua`          | Window: set dropdown, weapon slots, macro checklist  |
-
 ## Install
 
-Copy (or symlink) the folder into:
+The addon itself is the `WeaponStash/` folder. Copy that whole folder into your
+client's `Interface/AddOns`:
 
 ```
-World of Warcraft/_classic_era_/Interface/AddOns/WeaponStash
+World of Warcraft/
+└── _classic_era_/            (or _anniversary_, ...)
+    └── Interface/
+        └── AddOns/
+            └── WeaponStash/  <- this repo's WeaponStash/ folder
+                ├── WeaponStash.toc
+                └── *.lua
 ```
 
-The folder name must match the `.toc` (`WeaponStash`). Then `/reload`.
+Then `/reload` in game. Keep the folder name `WeaponStash`; it must match the `.toc`.
 
-`## Interface: 11509` targets Classic Era 1.15.9; bump it if the client version changes.
+Or let the script do it (macOS, default install location; set `WOW_DIR` otherwise):
+
+```sh
+scripts/install.sh _classic_era_          # copy (run again after changes)
+scripts/install.sh --link _classic_era_   # symlink: repo edits show up after /reload
+```
+
+`## Interface: 11509, 16001, 20506` covers Classic Era 1.15.9, WoW Forever 1.60.1
+(folder `_forever_`) and TBC Anniversary 2.5.6. The numbers change with each client
+patch; check one in game with `/dump select(4, GetBuildInfo())`. WoW Forever runs on
+the modern (Midnight-era) client and hasn't been tested yet.
+
+## Layout
+
+| Path                          | Purpose                                              |
+|-------------------------------|------------------------------------------------------|
+| `WeaponStash/WeaponStash.toc` | Addon manifest + load order                          |
+| `WeaponStash/Core.lua`        | Init, saved variables, events, slash commands        |
+| `WeaponStash/Stash.lua`       | Weapon sets: snapshot, slot assignment, equipping    |
+| `WeaponStash/Macros.lua`      | Macro listing, linking, `/equipslot` line rewriting  |
+| `WeaponStash/UI.lua`          | Window: set dropdown, weapon slots, macro checklist  |
+| `scripts/install.sh`          | Copy or symlink the addon into a client's AddOns     |
