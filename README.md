@@ -89,4 +89,4 @@ World of Warcraft/_classic_era_/Interface/AddOns/WeaponStash
 
 The folder name must match the `.toc` (`WeaponStash`). Then `/reload`.
 
-`## Interface: 11509` targets Classic Era 1.15.9; bump it if the client version changes.
+`## Interface: 11509, 16001` targets Classic Era 1.15.9 and WoW: Forever 1.60.1; bump these if a client version changes (check in-game with `/dump select(4, GetBuildInfo())`).
